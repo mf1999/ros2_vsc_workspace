@@ -1,0 +1,5 @@
+blueye:
+  controller_node:
+    ros__parameters:
+      inputRelativePosition: dummy_position
+      outputThrusterForce: thruster_force_norm_ref
