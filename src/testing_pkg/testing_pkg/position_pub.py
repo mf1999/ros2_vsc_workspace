@@ -51,7 +51,14 @@ class PositionPublisher(Node):
                         self.Z = iter(self.Z_space)
                         z = next(self.Z)
 
-                self.get_logger().info(f"x:{x}, y:{self.y}, z:{z}")
+                try:
+                        v = next(self.V)
+                except StopIteration:
+                        self.V_space = np.flip(self.V_space)
+                        self.V = iter(self.V_space)
+                        v = next(self.V)
+
+                # self.get_logger().info(f"x:{x}, y:{self.y}, z:{z}")
                 msg = Vector3Stamped()
                 msg.header.stamp = self.get_clock().now().to_msg()
 
@@ -59,6 +66,10 @@ class PositionPublisher(Node):
                 msg.vector.y = self.y
                 msg.vector.z = z
                 self.pos_pub.publish(msg)
+
+                msg = Float32()
+                msg.data = v
+                self.val_pub.publish(msg)
 
         def declare_node_params(self):
                 self.declare_parameter(POSITION_TOPIC_PARAM)
@@ -72,10 +83,12 @@ class PositionPublisher(Node):
                 self.X_space = np.linspace(-100, 100, 200)
                 self.Y_space = np.linspace(30, 0, 10)
                 self.Z_space = np.linspace(0, 5, 50)
+                self.V_space= np.linspace(0, 100, 200)
 
                 self.X = iter(self.X_space)
                 self.Y = iter(self.Y_space)
                 self.Z = iter(self.Z_space)
+                self.V = iter(self.V_space)
 
                 self.y = next(self.Y)
 
