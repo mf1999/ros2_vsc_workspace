@@ -2,4 +2,15 @@ blueye:
   controller_node:
     ros__parameters:
       inputRelativePosition: dummy_position
-      outputThrusterForce: thruster_force_norm_ref
+      outputThrusterForce: thruster_force_norm_ref #cmd_vel 
+      outputSlowGainRef: slow_gain_ref
+      starting_position: [-8.0, 0.2, 1.5]
+      limit_left: -8.0
+      limit_right: 0.0
+      limit_depth: 2.3
+      x_discretization: 10
+      depth_discretization: 3
+      tolerance: 0.05
+      slow_gain_ref: 1.0
+      max_thrust_pos: 1.0
+      max_thrust_neg: -1.0

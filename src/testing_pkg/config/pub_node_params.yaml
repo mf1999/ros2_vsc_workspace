@@ -1,0 +1,5 @@
+blueye:
+  publisher_node:
+    ros__parameters:
+      outputPosition: dummy_position
+      outputValueForPos: dummy_value
