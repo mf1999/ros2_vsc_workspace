@@ -8,9 +8,9 @@ blueye:
       limit_left: -8.0
       limit_right: 0.0
       limit_depth: 2.3
-      x_discretization: 10
-      depth_discretization: 3
-      tolerance: 0.05
+      x_discretization: 2
+      depth_discretization: 2
+      tolerance: 0.1
       slow_gain_ref: 1.0
       max_thrust_pos: 1.0
       max_thrust_neg: -1.0

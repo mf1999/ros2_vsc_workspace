@@ -23,7 +23,7 @@ class PositionPublisher(Node):
 
                 self.initialize_class_objects()
 
-                timer_period = 0.01 # seconds
+                timer_period = 0.02 # seconds
      
                 self.timer = self.create_timer(timer_period, self.timer_callback)
         

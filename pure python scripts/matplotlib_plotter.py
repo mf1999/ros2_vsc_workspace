@@ -2,12 +2,9 @@ import sqlite3
 from rosidl_runtime_py.utilities import get_message
 from rclpy.serialization import deserialize_message
 
-import matplotlib.pyplot as plt
-import pandas as pd
+from mpl_toolkits import mplot3d
 import numpy as np
-import plotly.express as px
-
-
+import matplotlib.pyplot as plt
 
 class BagFileParser():
     def __init__(self, bag_file):
@@ -68,21 +65,11 @@ if __name__ == "__main__":
         Y = Y[:min_len]
         Z = Z[:min_len]
 
-        dict = {'x': X, 'y': Y, 'z': Z, 'v': values}
-        df = pd.DataFrame(data=dict)
-
-        fig = px.scatter_3d(df, x='x', y='y', z='z',
-              color='v')
-        fig.update_layout(
-            scene = dict(
-                xaxis = dict(nticks=4, range=[-100,100],),
-                                yaxis = dict(nticks=4, range=[-50,100],),
-                                zaxis = dict(nticks=4, range=[-100,100],),),
-            width=700,
-            margin=dict(r=20, l=10, b=10, t=10)) 
-        
-        fig.show()
-        # print(points)
-        # print(values)
-
-        
+        fig = plt.figure()
+        ax = plt.axes(projection='3d')
+        ax.scatter3D(X, Z, Y, c=values, cmap='RdYlGn')
+        ax.set_yticks(np.arange(0, 50, 5))    
+        ax.set_xlabel('$X$')
+        ax.set_ylabel('$Y$')
+        ax.set_zlabel('$Z$')
+        plt.show()
