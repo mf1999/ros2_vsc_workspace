@@ -6,6 +6,7 @@ from geometry_msgs.msg import Vector3Stamped
 from std_msgs.msg import Float32
 import numpy as np
 from time import sleep
+
 POSITION_TOPIC_PARAM = 'outputPosition'
 FLOAT_VALUE_TOPIC_PARAM = 'outputValueForPos'
 
@@ -23,7 +24,7 @@ class PositionPublisher(Node):
 
                 self.initialize_class_objects()
 
-                timer_period = 0.02 # seconds
+                timer_period = 0.5 # seconds
      
                 self.timer = self.create_timer(timer_period, self.timer_callback)
         

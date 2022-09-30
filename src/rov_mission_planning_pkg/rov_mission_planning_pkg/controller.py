@@ -11,6 +11,7 @@ import numpy as np
 POSITION_TOPIC_PARAM    = 'inputRelativePosition'
 THRUSTER_TOPIC_PARAM    = 'outputThrusterForce'
 SLOW_GAIN_TOPIC_PARAM   = 'outputSlowGainRef'
+POSE_TOPIC_PARAM        = 'inputPose'
 START_POSITION_PARAM    = 'starting_position'
 LEFT_LIMIT_PARAM        = 'limit_left'
 RIGHT_LIMIT_PARAM       = 'limit_right'
@@ -66,17 +67,17 @@ class MoveToStart(State):
 
         self.tolerance = tolerance
         
-        self.pid_x = PID(1.0, 1.0, 0.0, setpoint=limit_l)
+        self.pid_x = PID(1.0, 1.0, 0.0, setpoint=distance)
         self.pid_x.sample_time = 1.0  # Update every 0.01 seconds
         self.pid_x.output_limits = (-1.0, 1.0) 
 
-        self.pid_y = PID(1.0, 1.0, 0.0, setpoint=start_depth)
+        self.pid_y = PID(1.0, 1.0, 0.0, setpoint=limit_l)
         self.pid_y.sample_time = 1.0  # Update every 0.01 seconds
-        self.pid_y.output_limits = (-1.0, 1.0)
+        self.pid_y.output_limits = (-0.4, 0.4)
 
-        self.pid_z = PID(1.0, 1.0, 0.0, setpoint=distance)
+        self.pid_z = PID(1.0, 1.0, 0.0, setpoint=start_depth)
         self.pid_z.sample_time = 1.0  # Update every 0.01 seconds
-        self.pid_z.output_limits = (-1.0, 1.0)
+        self.pid_z.output_limits = (-0.4, 0.4)
         
         self.start_check = 0
         self.depths = self.calculate_depths()
@@ -86,24 +87,24 @@ class MoveToStart(State):
         pos_vector = msg.vector
 
         ###
-        x = self.limit_l
-        y = self.depths[0]
-        z = self.distance
-        self.controller.get_logger().info(f"Wanted -> x: {x}, y: {y}, z: {z}")        
+        x = self.distance
+        y = self.limit_l
+        z = self.depths[0]
+        self.controller.get_logger().info(f"Wanted -> distance: {x}, width: {y}, depth: {z}")        
         ### 
 
         lower, upper = get_lower_upper(x, self.tolerance)
         # self.controller.get_logger().info(f"X Lower: {lower}, Actual: {pos_vector.x}, Upper: {upper}")
-        if not lower < pos_vector.x < upper:
-            pub_msg.linear.x = self.pid_x(pos_vector.x)
-            p, i, d = self.pid_x.components
-            self.controller.get_logger().info(f"p, i, d: {p}, {i}, {d}") 
+        if not lower < pos_vector.y < upper:
+            pub_msg.linear.x = self.pid_x(pos_vector.y)
+            # p, i, d = self.pid_y.components
+            # self.controller.get_logger().info(f"p, i, d: {p}, {i}, {d}") 
             # self.controller.get_logger().info(f"Setting X to {self.pid_x(pos_vector.x)} according to pid.")
 
         lower, upper = get_lower_upper(y, self.tolerance)
         # self.controller.get_logger().info(f"Y Lower: {lower}, Actual: {pos_vector.x}, Upper: {upper}")
-        if not lower < pos_vector.y < upper:
-            pub_msg.linear.y = self.pid_y(pos_vector.y)
+        if not lower < pos_vector.x < upper:
+            pub_msg.linear.y = - self.pid_y(pos_vector.x)
         #     self.controller.get_logger().info(f"Setting Y to {self.pid_y(pos_vector.y)} according to pid.")
 
         lower, upper = get_lower_upper(z, self.tolerance)
@@ -152,17 +153,17 @@ class LeftToRight(State):
 
         self.tolerance = tolerance
         
-        self.pid_x = PID(1.0, 1.0, 0.0, setpoint=limit_l)
+        self.pid_x = PID(1.0, 1.0, 0.0, setpoint=distance)
         self.pid_x.sample_time = 1.0  # Update every 0.01 seconds
         self.pid_x.output_limits = (-1.0, 1.0) 
 
-        self.pid_y = PID(1.0, 1.0, 0.0, setpoint=depths[depth_level])
+        self.pid_y = PID(1.0, 1.0, 0.0, setpoint=limit_l)
         self.pid_y.sample_time = 1.0  # Update every 0.01 seconds
-        self.pid_y.output_limits = (-1.0, 1.0)
+        self.pid_y.output_limits = (-0.4, 0.4)
 
-        self.pid_z = PID(1.0, 1.0, 0.0, setpoint=distance)
+        self.pid_z = PID(1.0, 1.0, 0.0, setpoint=depths[depth_level])
         self.pid_z.sample_time = 1.0  # Update every 0.01 seconds
-        self.pid_z.output_limits = (-1.0, 1.0)
+        self.pid_z.output_limits = (-0.4, 0.4)
         
         self.dscrtz_idx = 0
         self.photos_taken_at_pos = 0
@@ -173,22 +174,22 @@ class LeftToRight(State):
         pub_msg = Twist() 
 
         ###
-        x = self.X[self.dscrtz_idx]
-        y = self.depths[self.depth_level]
-        z = self.distance
-        self.controller.get_logger().info(f"Wanted -> x: {x}, y: {y}, z: {z}")
+        x = self.distance 
+        y = self.X[self.dscrtz_idx]
+        z = self.depths[self.depth_level]
+        self.controller.get_logger().info(f"Wanted -> distance: {x}, width: {y}, depth: {z}")        
         ### 
 
         lower, upper = get_lower_upper(x, self.tolerance)
-        self.controller.get_logger().info(f"X Lower: {lower}, Actual: {pos_vector.x}, Upper: {upper}")
-        if not lower < pos_vector.x < upper:
-            pub_msg.linear.x = self.pid_x(pos_vector.x)
-            self.controller.get_logger().info(f"Setting X to {self.pid_x(pos_vector.x)} according to pid.")
+        # self.controller.get_logger().info(f"X Lower: {lower}, Actual: {pos_vector.x}, Upper: {upper}")
+        if not lower < pos_vector.y < upper:
+            pub_msg.linear.x = self.pid_x(pos_vector.y)
+            # self.controller.get_logger().info(f"Setting X to {self.pid_x(pos_vector.x)} according to pid.")
 
         lower, upper = get_lower_upper(y, self.tolerance)
         # self.controller.get_logger().info(f"Y Lower: {lower}, Actual: {pos_vector.x}, Upper: {upper}")
-        if not lower < pos_vector.y < upper:
-            pub_msg.linear.y = self.pid_y(pos_vector.y)
+        if not lower < pos_vector.x < upper:
+            pub_msg.linear.y = - self.pid_y(pos_vector.x)
         #     self.controller.get_logger().info(f"Setting Y to {self.pid_y(pos_vector.y)} according to pid.")
 
         lower, upper = get_lower_upper(z, self.tolerance)
@@ -213,7 +214,7 @@ class LeftToRight(State):
                 else:
                     self.dscrtz_idx += 1
                     self.photos_taken_at_pos = 0
-                    self.pid_x.setpoint = self.X[self.dscrtz_idx]
+                    self.pid_y.setpoint = self.X[self.dscrtz_idx]
 
     def prepare_exit(self):
         self.controller.get_logger().info(f"Leaving LeftToRight state...")
@@ -239,17 +240,17 @@ class RightToLeft(State):
 
         self.tolerance = tolerance
         
-        self.pid_x = PID(1.0, 1.0, 0.0, setpoint=limit_r)
+        self.pid_x = PID(1.0, 1.0, 0.0, setpoint=distance)
         self.pid_x.sample_time = 1.0  # Update every 0.01 seconds
         self.pid_x.output_limits = (-1.0, 1.0) 
 
-        self.pid_y = PID(1.0, 1.0, 0.0, setpoint=depths[depth_level])
+        self.pid_y = PID(1.0, 1.0, 0.0, setpoint=limit_r)
         self.pid_y.sample_time = 1.0  # Update every 0.01 seconds
-        self.pid_y.output_limits = (-1.0, 1.0)
+        self.pid_y.output_limits = (-0.4, 0.4)
 
-        self.pid_z = PID(1.0, 1.0, 0.0, setpoint=distance)
+        self.pid_z = PID(1.0, 1.0, 0.0, setpoint=depths[depth_level])
         self.pid_z.sample_time = 1.0  # Update every 0.01 seconds
-        self.pid_z.output_limits = (-1.0, 1.0)
+        self.pid_z.output_limits = (-0.4, 0.4)
         
         self.dscrtz_idx = 0
         self.photos_taken_at_pos = 0
@@ -260,22 +261,22 @@ class RightToLeft(State):
         pub_msg = Twist() 
 
         ###
-        x = self.X[self.dscrtz_idx]
-        y = self.depths[self.depth_level]
-        z = self.distance
-        self.controller.get_logger().info(f"Wanted -> x: {x}, y: {y}, z: {z}")
+        x = self.distance 
+        y = self.X[self.dscrtz_idx] 
+        z = self.depths[self.depth_level]
+        self.controller.get_logger().info(f"Wanted -> distance: {x}, width: {y}, depth: {z}")        
         ### 
 
         lower, upper = get_lower_upper(x, self.tolerance)
         # self.controller.get_logger().info(f"X Lower: {lower}, Actual: {pos_vector.x}, Upper: {upper}")
-        if not lower < pos_vector.x < upper:
-            pub_msg.linear.x = self.pid_x(pos_vector.x)
+        if not lower < pos_vector.y < upper:
+            pub_msg.linear.x = self.pid_x(pos_vector.y)
             # self.controller.get_logger().info(f"Setting X to {self.pid_x(pos_vector.x)} according to pid.")
 
         lower, upper = get_lower_upper(y, self.tolerance)
         # self.controller.get_logger().info(f"Y Lower: {lower}, Actual: {pos_vector.x}, Upper: {upper}")
-        if not lower < pos_vector.y < upper:
-            pub_msg.linear.y = self.pid_y(pos_vector.y)
+        if not lower < pos_vector.x < upper:
+            pub_msg.linear.y = - self.pid_y(pos_vector.x)
         #     self.controller.get_logger().info(f"Setting Y to {self.pid_y(pos_vector.y)} according to pid.")
 
         lower, upper = get_lower_upper(z, self.tolerance)
@@ -300,7 +301,7 @@ class RightToLeft(State):
                 else:
                     self.dscrtz_idx += 1
                     self.photos_taken_at_pos = 0
-                    self.pid_x.setpoint = self.X[self.dscrtz_idx]
+                    self.pid_y.setpoint = self.X[self.dscrtz_idx]
 
     def prepare_exit(self):
         self.controller.get_logger().info(f"Leaving RightToLeft state...")
@@ -329,23 +330,27 @@ class Dive(State):
             x_setpoint = limit_r
         else:
             x_setpoint = limit_l
-        self.pid_x = PID(1.0, 1.0, 0.0, setpoint=x_setpoint)
+        self.pid_x = PID(1.0, 1.0, 0.0, setpoint=distance)
         self.pid_x.sample_time = 1.0  # Update every 0.01 seconds
         self.pid_x.output_limits = (-1.0, 1.0) 
 
         try:
-            self.pid_y = PID(1.0, 1.0, 0.0, setpoint=depths[depth_level])
-            self.pid_y.sample_time = 1.0  # Update every 0.01 seconds
-            self.pid_y.output_limits = (-1.0, 1.0)
+            self.pid_z = PID(1.0, 1.0, 0.0, setpoint=depths[depth_level])
+            self.pid_z.sample_time = 1.0  # Update every 0.01 seconds
+            self.pid_z.output_limits = (-0.4, 0.4)
         except IndexError:
             self.controller.get_logger().info(f"DEALING WITH INDEX ERROR")
-            self.pid_y = PID(1.0, 1.0, 0.0, setpoint=depths[depth_level - 1])
-            self.pid_y.sample_time = 1.0  # Update every 0.01 seconds
-            self.pid_y.output_limits = (-1.0, 1.0)
+            self.pid_z = PID(1.0, 1.0, 0.0, setpoint=depths[depth_level - 1])
+            self.pid_z.sample_time = 1.0  # Update every 0.01 seconds
+            self.pid_z.output_limits = (-0.4, 0.4)
 
-        self.pid_z = PID(1.0, 1.0, 0.0, setpoint=distance)
-        self.pid_z.sample_time = 1.0  # Update every 0.01 seconds
-        self.pid_z.output_limits = (-1.0, 1.0)
+        if self.prev_state == LEFT_TO_RIGHT:
+            x_setpoint = self.limit_r
+        else:
+            x_setpoint = self.limit_l
+        self.pid_y = PID(1.0, 1.0, 0.0, setpoint=x_setpoint)
+        self.pid_y.sample_time = 1.0  # Update every 0.01 seconds
+        self.pid_y.output_limits = (-0.4, 0.4)
 
         self.start_check = 0
 
@@ -355,31 +360,31 @@ class Dive(State):
 
         ###
         if self.prev_state == LEFT_TO_RIGHT:
-            x = self.limit_r
+            y = self.limit_r
         else:
-            x = self.limit_l
+            y = self.limit_l
 
         if self.depth_level >= len(self.depths):
-            new_state = Resurface(self.controller, 0.0, 0.0, 0.0)
+            new_state = Resurface(self.controller, 5.0, 5.0, 0.0)
             self.controller.change_state(new_state)
             self.controller.get_logger().info(f"RETURNING BECAUSE OF DEPTH LEVEL FROM DIVE CALLBACK")
             return
-        y = self.depths[self.depth_level]
+        x = self.distance
 
-        z = self.distance
-        self.controller.get_logger().info(f"Wanted -> x: {x}, y: {y}, z: {z}")
+        z = self.depths[self.depth_level]
+        self.controller.get_logger().info(f"Wanted -> distance: {x}, width: {y}, depth: {z}")        
         ### 
 
         lower, upper = get_lower_upper(x, self.tolerance)
         # self.controller.get_logger().info(f"X Lower: {lower}, Actual: {pos_vector.x}, Upper: {upper}")
-        if not lower < pos_vector.x < upper:
-            pub_msg.linear.x = self.pid_x(pos_vector.x)
+        if not lower < pos_vector.y < upper:
+            pub_msg.linear.x = self.pid_x(pos_vector.y)
             # self.controller.get_logger().info(f"Setting X to {self.pid_x(pos_vector.x)} according to pid.")
 
         lower, upper = get_lower_upper(y, self.tolerance)
         # self.controller.get_logger().info(f"Y Lower: {lower}, Actual: {pos_vector.x}, Upper: {upper}")
-        if not lower < pos_vector.y < upper:
-            pub_msg.linear.y = self.pid_y(pos_vector.y)
+        if not lower < pos_vector.x < upper:
+            pub_msg.linear.y =  - self.pid_y(pos_vector.x)
         #     self.controller.get_logger().info(f"Setting Y to {self.pid_y(pos_vector.y)} according to pid.")
 
         lower, upper = get_lower_upper(z, self.tolerance)
@@ -421,11 +426,11 @@ class Resurface(State):
 
         self.pid_y = PID(1.0, 1.0, 0.0, setpoint=y)
         self.pid_y.sample_time = 1.0  # Update every 0.01 seconds
-        self.pid_y.output_limits = (-1.0, 1.0)
+        self.pid_y.output_limits = (-0.4, 0.4)
 
         self.pid_z = PID(1.0, 1.0, 0.0, setpoint=z)
         self.pid_z.sample_time = 1.0  # Update every 0.01 seconds
-        self.pid_z.output_limits = (-1.0, 1.0)
+        self.pid_z.output_limits = (-0.4, 0.4)
 
         self.start_check = 0
 
@@ -435,8 +440,8 @@ class Resurface(State):
         pub_msg = Twist()
         pos_vector = msg.vector
 
-        pub_msg.linear.x = self.pid_x(pos_vector.x)
-        pub_msg.linear.y = self.pid_y(pos_vector.y)
+        pub_msg.linear.x = self.pid_x(pos_vector.y)
+        pub_msg.linear.y = - self.pid_y(pos_vector.x)
         pub_msg.linear.z = self.pid_z(pos_vector.z)
         
         self.controller.thruster_pub.publish(pub_msg)
@@ -462,6 +467,7 @@ class Controller(Node):
             self.declare_parameter(POSITION_TOPIC_PARAM, '/placeholder_position_topic')
             self.declare_parameter(THRUSTER_TOPIC_PARAM, '/placeholder_thruster_topic')
             self.declare_parameter(SLOW_GAIN_TOPIC_PARAM, '/placeholder_slow_gain')
+            self.declare_parameter(POSE_TOPIC_PARAM)
             self.declare_parameter(START_POSITION_PARAM)
             self.declare_parameter(LEFT_LIMIT_PARAM)
             self.declare_parameter(RIGHT_LIMIT_PARAM)
@@ -477,11 +483,14 @@ class Controller(Node):
             self.create_subscription(Vector3Stamped, 
                 self.get_parameter(POSITION_TOPIC_PARAM).value, self.position_callback, 10)
             
+            self.create_subscription(Vector3Stamped, 
+                '/catamaran/waterlinked_locator_position_relative_wrt_topside', self.position_callback, 10)
+            
             # self.create_subscription(Float64Custom, 
             #     self.get_parameter(MONOCULAR_DISTANCE_TOPIC_PARAM).value, self.monocular_callback, 10)
 
             # self.create_subscription(Pose,
-            #     self.get_parameter(POSE_TOPIC_PARAM).value, self.pose_callback, 10)
+            #    self.get_parameter(POSE_TOPIC_PARAM).value, self.pose_callback, 10)
 
         def initialize_publishers(self):
             self.thruster_pub = self.create_publisher(Twist, self.get_parameter(THRUSTER_TOPIC_PARAM).value, 10)
@@ -514,8 +523,8 @@ class Controller(Node):
             depth_discretization = self.get_parameter(DEPTH_DSCRTZ_PARAM).get_parameter_value().integer_value
             tolerance = self.get_parameter(TOLERANCE_PARAM).get_parameter_value().double_value
 
-            self.current_state = MoveToStart(self, limit_l, limit_r, start_vector[1], limit_depth,\
-                start_vector[2], x_discretization, depth_discretization, tolerance)
+            self.current_state = MoveToStart(self, limit_l, limit_r, start_vector[2], limit_depth,\
+                start_vector[1], x_discretization, depth_discretization, tolerance)
 
         def change_state(self, new_state):
             self.current_state.prepare_exit()

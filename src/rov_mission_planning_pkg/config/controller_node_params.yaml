@@ -4,13 +4,14 @@ blueye:
       inputRelativePosition: dummy_position
       outputThrusterForce: thruster_force_norm_ref #cmd_vel 
       outputSlowGainRef: slow_gain_ref
-      starting_position: [-8.0, 0.2, 1.5]
-      limit_left: -8.0
-      limit_right: 0.0
-      limit_depth: 2.3
-      x_discretization: 2
-      depth_discretization: 2
+      inputPose: pose
+      starting_position: [16.0, 12.0, 1.0]
+      limit_left: 16.0
+      limit_right: 5.0
+      limit_depth: 2.0
+      x_discretization: 3
+      depth_discretization: 3
       tolerance: 0.1
       slow_gain_ref: 1.0
-      max_thrust_pos: 1.0
-      max_thrust_neg: -1.0
+      max_thrust_pos: 0.4
+      max_thrust_neg: -0.4
